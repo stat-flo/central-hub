@@ -1,46 +1,92 @@
-from sensor_module.sensor_module import SensorModuleNode
+import time
+import random
 
-class NodeLine:
-    #TODO: 
-    def __init__(self):
-        pass
+from sensor_module.sensor_module import SensorModuleNode
+from sensor_module.sensor_line   import NodeLine
 
 class CentralHub:
     def __init__(self):
         self.node_set = {}
+        self.line_set = {}
         self.db_cache = {}
         self.num_nodes = 0
+        self.num_lines = 0
+        self.node_line_id = 0
+
+    def line_calibration(self, node1, node2, node_line):     
+        node1_data = []
+        node2_data = []
+        
+        # Start the timer
+        start = time.time()
+
+        # Run for 600 seconds (10 minutes)
+        run_time = 15
+
+        while(time.time() - start < run_time + 1):        
+            print(time.time() - start)  
+
+            node1.set_node_data(random.randint(6500, 8000))
+            node2.set_node_data(random.randint(6500, 8000))
+
+            node1_data.append(node1.get_node_data())
+            node2_data.append(node2.get_node_data())
+
+            time.sleep(5)
+
+        node_line.set_node_1_avg(self.calculate_avg_time(node1_data))
+        node_line.set_node_2_avg(self.calculate_avg_time(node2_data))
+
+        node1.set_max_sample(max(node1_data))
+        node2.set_max_sample(max(node2_data))
+
+        node1.set_min_sample(min(node1_data))
+        node2.set_min_sample(min(node2_data))
+
+        self.display_nodes()
+
+    def initialize_node_line(self, node_line, node1, node2):
+        line_id = node_line.generate_node_line_id()
+
+        while (str(line_id) in self.line_set):
+            line_id = node_line.generate_node_line_id()
+
+        self.line_set[str(line_id)] = node_line
+
+        node_line.set_node_pairs(node1, node2)
+        self.num_lines += 1
+
+    def calculate_avg_time(self, node_data_set):
+        return sum(node_data_set) // len(node_data_set) 
 
     #TODO: No data has been received from this node
     def error_node(self, node):
         pass
 
-    #TODO: Iterates through the list of nodes and reads
-    #      the data from those nodes
-    def cycle_nodes(self, node_list):
-        pass
-
-    #TODO: Reads the data from the input node
-    def read_node(self, node):
-        pass
+    # Iterates through the list of nodes and reads
+    # the data from those nodes
+    def cycle_nodes(self):
+        print("Cycle Nodes:")
+        for line in self.line_set:
+            print(self.line_set[line])
 
     #TODO: Pushes data from node to the database
-    def push_to_database(self, node):
+    def push_to_database(self, node_id):
         pass
 
-    #TODO: Adds a node to the set
+    # Adds a node to the set
     def add_node(self, node):
-        self.node_set[node.get_name()] = node
+        self.node_set[node.get_node_id()] = node
         self.num_nodes += 1
 
-    #TODO: Removes a node from a set
+    # Removes a node from a set
     def remove_node(self, node):
         try:
-            self.node_set.pop(node.get_name())
+            self.node_set.pop(node.get_node_id())
             self.num_nodes -= 1
 
         except:
-            print("Error: Removing Node %s" % node.get_name())
+            print("Error: Removing Node %s" % node.get_node_id())
 
     #TODO: An error has occured when loading to the database
     #      and the node data has been stored in a cache
@@ -53,21 +99,49 @@ class CentralHub:
             return 
 
         node_num = 1
+
         for node in self.node_set:
             print("Node %s: " % int(node_num), flush=True, end="")
             print(self.node_set[node])
             node_num += 1
 
+    def display_lines(self):
+        if self.num_lines <= 0:
+            print("Node list is empty.")
+            return 
+
+        line_num = 1
+
+        for line in self.line_set:
+            print("Line %s: " % int(line_num), flush=True, end="")
+            print(self.line_set[line])
+            line_num += 1
+
 if __name__ == "__main__":
     hub = CentralHub()
-    node = SensorModuleNode()
 
-    node.set_name("1f3b79")
+    node_1 = SensorModuleNode()
+    node_2 = SensorModuleNode()
 
-    hub.add_node(node)
+    node_line = NodeLine()
 
+    node_1.set_node_id("1f3b79")
+    node_2.set_node_id("1f3b56")
+
+    hub.add_node(node_1)
     hub.display_nodes()
 
-    hub.remove_node(node)
+    hub.add_node(node_2)
+    hub.display_nodes()
 
+    hub.initialize_node_line(node_line, node_1, node_2)
+    hub.line_calibration(node_1, node_2, node_line)
+ 
+    # hub.display_lines()
+    hub.cycle_nodes()
+
+    hub.remove_node(node_2)
+    hub.display_nodes()
+
+    hub.remove_node(node_1)
     hub.display_nodes()
