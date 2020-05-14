@@ -13,6 +13,12 @@ class CentralHub:
         self.num_lines = 0
         self.node_line_id = 0
 
+    #TODO: Send the request packet to the desired node
+    def transmit_request(self, node_id):
+        flag = 1
+
+        # while ()
+
     def line_calibration(self, node1, node2, node_line):     
         node1_data = []
         node2_data = []
@@ -66,9 +72,40 @@ class CentralHub:
     # Iterates through the list of nodes and reads
     # the data from those nodes
     def cycle_nodes(self):
-        print("Cycle Nodes:")
+        print("\nCycle Nodes:")
         for line in self.line_set:
-            print(self.line_set[line])
+            print("Reading from Nodeline %s" % self.line_set[line].get_node_line_id())
+            print("\nSending request to Node %s" % self.line_set[line].get_node_pairs()[0].get_node_id())
+            time.sleep(2)
+            print("Waiting on the recipient ack from Node %s" % self.line_set[line].get_node_pairs()[0].get_node_id())
+            time.sleep(2)
+            print("Ack received from Node %s!" % self.line_set[line].get_node_pairs()[0].get_node_id())
+            time.sleep(2)
+            print("Waiting for data packet from Node %s" % self.line_set[line].get_node_pairs()[0].get_node_id())
+            time.sleep(2)
+            print("Receiving data packet from Node %s" % self.line_set[line].get_node_pairs()[0].get_node_id())
+            time.sleep(2)
+            print("Receiving end packet from Node %s" % self.line_set[line].get_node_pairs()[0].get_node_id())
+            time.sleep(2)
+            print("Sending end packet ack to Node %s" % self.line_set[line].get_node_pairs()[0].get_node_id())
+            time.sleep(2)
+
+            print("\n\nSending request to Node %s" % self.line_set[line].get_node_pairs()[1].get_node_id())
+            time.sleep(2)
+            print("Waiting on the recipient ack from Node %s" % self.line_set[line].get_node_pairs()[1].get_node_id())
+            time.sleep(2)
+            print("Ack received from Node %s!" % self.line_set[line].get_node_pairs()[1].get_node_id())
+            time.sleep(2)
+            print("Waiting for data packet from Node %s" % self.line_set[line].get_node_pairs()[1].get_node_id())
+            time.sleep(2)
+            print("Receiving data packet from Node %s" % self.line_set[line].get_node_pairs()[1].get_node_id())
+            time.sleep(2)
+            print("Receiving end packet from Node %s" % self.line_set[line].get_node_pairs()[1].get_node_id())
+            time.sleep(2)
+            print("Sending end packet ack to Node %s" % self.line_set[line].get_node_pairs()[1].get_node_id())
+            time.sleep(2)
+
+            #print(self.line_set[line])
 
     #TODO: Pushes data from node to the database
     def push_to_database(self, node_id):
@@ -124,6 +161,7 @@ if __name__ == "__main__":
     node_2 = SensorModuleNode()
 
     node_line = NodeLine()
+    node_line.set_node_line_id("000001")
 
     node_1.set_node_id("1f3b79")
     node_2.set_node_id("1f3b56")
@@ -137,7 +175,7 @@ if __name__ == "__main__":
     hub.initialize_node_line(node_line, node_1, node_2)
     hub.line_calibration(node_1, node_2, node_line)
  
-    # hub.display_lines()
+    hub.display_lines()
     hub.cycle_nodes()
 
     hub.remove_node(node_2)
